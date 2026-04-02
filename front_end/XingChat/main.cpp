@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "login.h"
 
 #include <QApplication>
 #include <QLocale>
@@ -7,6 +7,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    Q_INIT_RESOURCE(XingChat);
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
@@ -17,7 +18,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    MainWindow w;
+    Login w;
     w.show();
     return QCoreApplication::exec();
 }
