@@ -1,12 +1,28 @@
 #include "register.h"
+#include "HttpMgr.h"
 #include "ui_register.h"
+#include <QDebug>
+#include <QJsonDocument>
 #include <QMessageBox>
+#include <QStyle>
+#include <QUrl>
+
+namespace {
+
+void repolish(QWidget *w)
+{
+    w->style()->unpolish(w);
+    w->style()->polish(w);
+}
+
+} // namespace
 
 Register::Register(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Register)
 {
     ui->setupUi(this);
+    initHttpHandlers();
     connectSignals();
 }
 
@@ -20,6 +36,63 @@ void Register::connectSignals()
     connect(ui->registerButton, &QPushButton::clicked, this, &Register::onRegisterClicked);
     connect(ui->cancelButton, &QPushButton::clicked, this, &Register::onCancelClicked);
     connect(ui->getCodeButton, &QPushButton::clicked, this, &Register::onGetCodeClicked);
+    connect(HttpMgr::GetInstance().get(), &HttpMgr::sig_reg_mod_finish, this, &Register::slot_reg_mod_finish);
+}
+
+void Register::initHttpHandlers()
+{
+    _handlers.insert(ReqId::ID_GET_VARIFY_CODE, [this](const QJsonObject &jsonObj) {
+        int error = jsonObj["error"].toInt();
+        if (error != ErrorCodes::SUCCESS) {
+            showTip(tr("参数错误"), false);
+            return;
+        }
+        auto email = jsonObj["email"].toString();
+        showTip(tr("验证码已发送到邮箱，注意查收"), true);
+        qDebug() << "email is " << email;
+    });
+}
+
+void Register::showTip(QString str, bool b_ok)
+{
+    if (b_ok) {
+        ui->err_tip->setProperty("state", "err");
+    } else {
+        ui->err_tip->setProperty("state", "normal");
+    }
+
+    ui->err_tip->setText(str);
+
+    repolish(ui->err_tip);
+}
+
+void Register::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
+{
+    if (err != ErrorCodes::SUCCESS) {
+        showTip(tr("网络请求错误"), false);
+        return;
+    }
+
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(res.toUtf8());
+    if (jsonDoc.isNull()) {
+        showTip(tr("json解析错误"), false);
+        return;
+    }
+
+    if (!jsonDoc.isObject()) {
+        showTip(tr("json解析错误"), false);
+        return;
+    }
+
+    QJsonObject jsonObj = jsonDoc.object();
+
+    auto it = _handlers.find(id);
+    if (it == _handlers.end()) {
+        return;
+    }
+    it.value()(jsonObj);
+
+    return;
 }
 
 void Register::onRegisterClicked()
@@ -79,5 +152,15 @@ void Register::onCancelClicked()
 
 void Register::onGetCodeClicked()
 {
-    QMessageBox::information(this, "验证码", "验证码已发送，请在邮箱中查收（仅演示）");
+    QString email = ui->emailInput->text().trimmed();
+    if (email.isEmpty()) {
+        showTip(tr("请输入邮箱"), false);
+        ui->emailInput->setFocus();
+        return;
+    }
+
+    QJsonObject json;
+    json["email"] = email;
+    QUrl url(QStringLiteral("http://127.0.0.1:8080/get_verify_code"));
+    HttpMgr::GetInstance()->PostHttpReq(url, json, ReqId::ID_GET_VARIFY_CODE, Modules::REGISTERMOD);
 }

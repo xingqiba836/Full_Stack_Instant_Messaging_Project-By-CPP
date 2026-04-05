@@ -1,0 +1,7 @@
+# Qt Creator / qmake user settings
+*.pro.user
+*.pro.user.*
+
+# Local build tree and IDE caches
+**/build/
+**/.qtc_clangd/

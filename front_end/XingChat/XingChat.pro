@@ -1,4 +1,4 @@
-QT += widgets
+QT += core gui network widgets
 
 CONFIG += c++17
 
@@ -11,12 +11,16 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     login.cpp \
-    register.cpp
+    register.cpp \
+    HttpMgr.cpp
 
 HEADERS += \
     mainwindow.h \
     login.h \
-    register.h
+    register.h \
+    singleton.h \
+    global.h \
+    HttpMgr.h
 
 FORMS += \
     mainwindow.ui \
