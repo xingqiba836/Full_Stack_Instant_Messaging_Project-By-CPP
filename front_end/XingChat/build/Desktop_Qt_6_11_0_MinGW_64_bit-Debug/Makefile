@@ -282,6 +282,7 @@ Makefile: ../../XingChat.pro E:/qt/6.11.0/mingw_64/mkspecs/win32-g++/qmake.conf 
 		E:/qt/6.11.0/mingw_64/mkspecs/features/qt_config.prf \
 		E:/qt/6.11.0/mingw_64/mkspecs/win32-g++/qmake.conf \
 		E:/qt/6.11.0/mingw_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		E:/qt/6.11.0/mingw_64/mkspecs/features/exclusive_builds.prf \
 		E:/qt/6.11.0/mingw_64/mkspecs/features/toolchain.prf \
 		E:/qt/6.11.0/mingw_64/mkspecs/features/default_pre.prf \
@@ -312,7 +313,6 @@ Makefile: ../../XingChat.pro E:/qt/6.11.0/mingw_64/mkspecs/win32-g++/qmake.conf 
 		E:/qt/6.11.0/mingw_64/lib/Qt6Gui.prl \
 		E:/qt/6.11.0/mingw_64/lib/Qt6Core.prl \
 		E:/qt/6.11.0/mingw_64/lib/Qt6EntryPoint.prl \
-		.qmake.stash \
 		E:/qt/6.11.0/mingw_64/mkspecs/features/build_pass.prf \
 		../../XingChat.qrc \
 		debug/qmake_qmake_qm_files.qrc \
@@ -530,6 +530,7 @@ E:/qt/6.11.0/mingw_64/mkspecs/features/qt_functions.prf:
 E:/qt/6.11.0/mingw_64/mkspecs/features/qt_config.prf:
 E:/qt/6.11.0/mingw_64/mkspecs/win32-g++/qmake.conf:
 E:/qt/6.11.0/mingw_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 E:/qt/6.11.0/mingw_64/mkspecs/features/exclusive_builds.prf:
 E:/qt/6.11.0/mingw_64/mkspecs/features/toolchain.prf:
 E:/qt/6.11.0/mingw_64/mkspecs/features/default_pre.prf:
@@ -560,7 +561,6 @@ E:/qt/6.11.0/mingw_64/lib/Qt6Widgets.prl:
 E:/qt/6.11.0/mingw_64/lib/Qt6Gui.prl:
 E:/qt/6.11.0/mingw_64/lib/Qt6Core.prl:
 E:/qt/6.11.0/mingw_64/lib/Qt6EntryPoint.prl:
-.qmake.stash:
 E:/qt/6.11.0/mingw_64/mkspecs/features/build_pass.prf:
 ../../XingChat.qrc:
 debug/qmake_qmake_qm_files.qrc:

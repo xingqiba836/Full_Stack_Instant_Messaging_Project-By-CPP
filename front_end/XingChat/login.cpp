@@ -1,5 +1,6 @@
 #include "login.h"
 #include "ui_login.h"
+#include "register.h"
 #include <QMessageBox>
 #include <QPixmap>
 #include <QDebug>
@@ -63,6 +64,19 @@ void Login::onLoginClicked()
 
 void Login::onRegisterClicked()
 {
-    // 这里添加注册逻辑
-    QMessageBox::information(this, "注册", "跳转到注册页面\n(请添加实际的注册窗口)");
+    Register *reg = new Register;
+    reg->setAttribute(Qt::WA_DeleteOnClose);
+    reg->setGeometry(this->geometry());
+    reg->setFixedSize(this->size());
+
+    connect(reg, &Register::backToLogin, this, [this]() {
+        this->show();
+    });
+    connect(reg, &QObject::destroyed, this, [this]() {
+        if (!this->isVisible()) {
+            this->show();
+        }
+    });
+    reg->show();
+    hide();
 }

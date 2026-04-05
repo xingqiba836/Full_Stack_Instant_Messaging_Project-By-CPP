@@ -10,15 +10,18 @@ RC_ICONS = XingChat.ico
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    login.cpp
+    login.cpp \
+    register.cpp
 
 HEADERS += \
     mainwindow.h \
-    login.h
+    login.h \
+    register.h
 
 FORMS += \
     mainwindow.ui \
-    login.ui
+    login.ui \
+    register.ui
 
 RESOURCES += \
     XingChat.qrc
