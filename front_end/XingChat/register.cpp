@@ -161,6 +161,7 @@ void Register::onGetCodeClicked()
 
     QJsonObject json;
     json["email"] = email;
-    QUrl url(QStringLiteral("http://127.0.0.1:8080/get_verify_code"));
+    QString request_url = gate_url_prefix + "/get_varifycode";
+    QUrl url(request_url);
     HttpMgr::GetInstance()->PostHttpReq(url, json, ReqId::ID_GET_VARIFY_CODE, Modules::REGISTERMOD);
 }

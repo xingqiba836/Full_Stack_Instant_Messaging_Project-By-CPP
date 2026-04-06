@@ -1,29 +1,41 @@
-#include <iostream>
-#include <sstream>
-#include "json/json.h"
+#include <boost/beast/websocket.hpp>
+#include "CServer.h"
+#include "LogicSystem.h"
+#include "HttpConnection.h"
 
 int main()
 {
-    Json::Value root;
-    root["id"] = 1001;
-    root["data"] = "hello world";
-    std::string request = root.toStyledString();
-    std::cout << "request is " << request << std::endl;
-
-    Json::Value root2;
-    Json::CharReaderBuilder builder;
-    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
-    std::string errors;
-
-    if (reader->parse(request.c_str(),
-                      request.c_str() + request.size(),
-                      &root2, &errors)) {
-        std::cout << "msg id is " << root2["id"].asInt()
-                  << " msg is " << root2["data"].asString() << std::endl;
-                      } else {
-                          std::cerr << "Parse error: " << errors << std::endl;
-                          return 1;
-                      }
-
-    return 0;
+    try
+    {
+        unsigned short port = static_cast<unsigned short>(8080);
+        net::io_context ioc{ 1 };
+        
+        // 记录服务器启动
+        std::cout << "Gate server starting on port 8080..." << std::endl;
+        
+        // 设置信号处理
+        boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
+        signals.async_wait([&ioc](const boost::system::error_code& error, int signal_number) {
+            if (error) {
+                return;
+            }
+            
+            // 记录服务器停止
+            std::cout << "Shutting down server..." << std::endl;
+            ioc.stop();
+            });
+            
+        // 创建并启动服务器
+        std::make_shared<HttpServer>(ioc, port)->StartAcceptingConnections();
+        std::cout << "Server is running..." << std::endl;
+        
+        // 运行IO上下文
+        ioc.run();
+    }
+    catch (std::exception const& e)
+    {
+        // 记录致命错误
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 }
