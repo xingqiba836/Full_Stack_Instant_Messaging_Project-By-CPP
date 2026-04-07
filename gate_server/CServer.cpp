@@ -1,7 +1,8 @@
 #include "CServer.h"
+#include "AsioIOServicePool.h"
 
 HttpServer::HttpServer(boost::asio::io_context &io_context, unsigned short &port)
-    : _acceptor(io_context, tcp::endpoint(tcp::v4(), port)), _io_context(io_context), _socket(io_context)
+    : _acceptor(io_context, tcp::endpoint(tcp::v4(), port))
 {
 
 }
@@ -9,7 +10,9 @@ HttpServer::HttpServer(boost::asio::io_context &io_context, unsigned short &port
 void HttpServer::StartAcceptingConnections()
 {
     auto self = shared_from_this();
-    _acceptor.async_accept(_socket, [self](beast::error_code error_code) {
+    auto &io_context = AsioIOServicePool::GetInstance()->GetIOService();
+    auto new_connection = std::make_shared<HttpConnection>(io_context);
+    _acceptor.async_accept(new_connection->GetSocket(), [self, new_connection](beast::error_code error_code) {
         try {
             //记录接受连接开始
             std::cout << "Accepting new connection" << std::endl;
@@ -22,8 +25,6 @@ void HttpServer::StartAcceptingConnections()
                 return;
             }
 
-            //创建并启动新连接
-            auto new_connection = std::make_shared<HttpConnection>(std::move(self->_socket));
             std::cout << "New connection established" << std::endl;
             new_connection->StartReadingRequest();
             

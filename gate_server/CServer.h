@@ -11,6 +11,4 @@ public:
 
 private:
     tcp::acceptor _acceptor;
-    net::io_context &_io_context;
-    boost::asio::ip::tcp::socket _socket;
 };

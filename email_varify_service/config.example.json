@@ -1,0 +1,10 @@
+{
+  "email": {
+    "user": "your_email@qq.com",
+    "pass": "your_smtp_auth_code"
+  },
+  "http": {
+    "host": "0.0.0.0",
+    "port": "5000"
+  }
+}

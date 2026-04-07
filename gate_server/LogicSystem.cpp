@@ -1,5 +1,6 @@
 #include "LogicSystem.h"
 #include "HttpConnection.h"
+#include "VerifyEmailServiceClient.h"
 
 LogicSystem::~LogicSystem() {}
 
@@ -47,8 +48,9 @@ LogicSystem::LogicSystem() {
         }
 
         auto email = request_json["email"].asString();
+        VerifyEmailResponse verify_response = VerifyEmailServiceClient::GetInstance()->GetVerifyCode(email);
         std::cout << "email is " << email << std::endl;
-        response_json["error"] = ErrorCodes::Success;
+        response_json["error"] = verify_response.error;
         response_json["email"] = request_json["email"];
         std::string json_string = response_json.toStyledString();
         beast::ostream(connection->_response.body()) << json_string;

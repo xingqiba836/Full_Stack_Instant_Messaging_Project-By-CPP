@@ -11,7 +11,8 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection>
     friend class LogicSystem;
     friend class HttpServer;
 public:
-    HttpConnection(tcp::socket socket);
+    HttpConnection(net::io_context &io_context);
+    tcp::socket &GetSocket();
     void StartReadingRequest();
 
 private:

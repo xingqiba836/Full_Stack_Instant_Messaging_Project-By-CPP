@@ -2,8 +2,12 @@
 #include "LogicSystem.h"
 #include <sstream>
 
-HttpConnection::HttpConnection(tcp::socket socket)
-    : _socket(std::move(socket)) {
+HttpConnection::HttpConnection(net::io_context &io_context)
+    : _socket(io_context) {
+}
+
+tcp::socket &HttpConnection::GetSocket() {
+    return _socket;
 }
 
 void HttpConnection::StartReadingRequest()
@@ -36,7 +40,7 @@ void HttpConnection::HandleRequest() {
     _response.keep_alive(false);
 
     // 记录请求开始
-std::cout << "Handling request: " << _request.method_string().data() << " " << _request.target() << std::endl;
+    std::cout << "Handling request: " << _request.method_string().data() << " " << _request.target() << std::endl;
     
     if (_request.method() == http::verb::get) {
         ParseGetParameters();
@@ -87,7 +91,7 @@ std::cout << "Handling request: " << _request.method_string().data() << " " << _
     _response.set(http::field::content_type, "text/plain");
     beast::ostream(_response.body()) << "Method not allowed\r\n";
     // 记录方法不允许的错误
-std::cerr << "Error: Method not allowed - " << _request.method_string().data() << std::endl;
+    std::cerr << "Error: Method not allowed - " << _request.method_string().data() << std::endl;
     WriteResponse();
 }
 

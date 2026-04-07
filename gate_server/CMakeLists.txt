@@ -35,8 +35,11 @@ find_package(Boost REQUIRED)
 add_executable(gate_server
         main.cpp
         CServer.cpp
+        AsioIOServicePool.cpp
         HttpConnection.cpp
         LogicSystem.cpp
+        ConfigMgr.cpp
+        VerifyEmailServiceClient.cpp
         urlcode.cpp
         json/jsoncpp.cpp
 )
@@ -48,7 +51,6 @@ target_include_directories(gate_server PRIVATE
         ${Boost_INCLUDE_DIRS}
 )
 
-# 链接库
 if(WIN32)
     target_link_libraries(gate_server
             ws2_32
@@ -62,3 +64,9 @@ if(MSVC)
 else()
     target_compile_options(gate_server PRIVATE -Wall -Wextra -pedantic)
 endif()
+
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/config.ini
+        ${CMAKE_CURRENT_BINARY_DIR}/config.ini
+        COPYONLY
+)

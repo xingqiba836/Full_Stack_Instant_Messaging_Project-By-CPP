@@ -23,7 +23,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 enum ErrorCodes {
     Success = 0,
     Error_Json = 1001,  // Json解析错误
-    RPCFailed = 1002,   // RPC请求错误
+    EmailServiceFailed = 1002,   // 邮件服务请求错误
 };
 
 #endif // CONST_H
