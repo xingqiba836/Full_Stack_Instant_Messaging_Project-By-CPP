@@ -24,7 +24,7 @@ public:
     void Stop();
 
 private:
-    AsioIOServicePool(std::size_t size = 4);
+    AsioIOServicePool(std::size_t size = std::thread::hardware_concurrency());
     std::vector<IOService> _io_services;
     std::vector<WorkPtr> _works;
     std::vector<std::thread> _threads;

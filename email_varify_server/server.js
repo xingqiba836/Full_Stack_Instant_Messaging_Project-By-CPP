@@ -2,6 +2,7 @@ const http = require("http");
 const { v4: uuidv4 } = require("uuid");
 
 const emailModule = require("./email");
+const redisModule = require("./redis");
 const constModule = require("./const");
 const configModule = require("./config");
 
@@ -38,6 +39,17 @@ async function sendVerifyCode(email) {
 
     const sendResult = await emailModule.sendMail(mailOptions);
     console.log("send result is", sendResult);
+
+    try {
+      await redisModule.setVerifyCode(email, uniqueId, 180);
+      console.log("verify code cached in redis for", email);
+    } catch (redisError) {
+      console.log("redis set verify code exception:", redisError);
+      return {
+        email: email,
+        error: constModule.Errors.RedisErr
+      };
+    }
 
     return {
       email: email,

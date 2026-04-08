@@ -31,6 +31,13 @@ endif()
 # 查找 Boost
 find_package(Boost REQUIRED)
 
+set(VCPKG_ROOT_DIR "$ENV{VCPKG_ROOT}")
+set(VCPKG_TRIPLET_DIR "${VCPKG_ROOT_DIR}/installed/x64-mingw-dynamic")
+if(EXISTS "${VCPKG_TRIPLET_DIR}/share/hiredis/hiredisConfig.cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${VCPKG_TRIPLET_DIR}")
+    find_package(hiredis CONFIG REQUIRED)
+endif()
+
 # 添加可执行文件
 add_executable(gate_server
         main.cpp
@@ -40,6 +47,7 @@ add_executable(gate_server
         LogicSystem.cpp
         ConfigMgr.cpp
         VerifyEmailServiceClient.cpp
+        RedisMgr.cpp
         urlcode.cpp
         json/jsoncpp.cpp
 )
@@ -51,12 +59,23 @@ target_include_directories(gate_server PRIVATE
         ${Boost_INCLUDE_DIRS}
 )
 
+if(TARGET hiredis::hiredis)
+    target_link_libraries(gate_server PRIVATE hiredis::hiredis)
+elseif(EXISTS "${VCPKG_TRIPLET_DIR}/include/hiredis/hiredis.h")
+    target_include_directories(gate_server PRIVATE "${VCPKG_TRIPLET_DIR}/include")
+    target_link_directories(gate_server PRIVATE "${VCPKG_TRIPLET_DIR}/lib")
+    target_link_libraries(gate_server PRIVATE hiredis)
+else()
+    message(FATAL_ERROR "hiredis not found. Please install hiredis and/or set VCPKG_ROOT.")
+endif()
+
 if(WIN32)
-    target_link_libraries(gate_server
+    target_link_libraries(gate_server PRIVATE
             ws2_32
             mswsock
     )
 endif()
+
 
 # 编译选项
 if(MSVC)
