@@ -1,5 +1,6 @@
 #include "LogicSystem.h"
 #include "HttpConnection.h"
+#include "RedisMgr.h"
 #include "VerifyEmailServiceClient.h"
 
 LogicSystem::~LogicSystem() {}
@@ -54,6 +55,78 @@ LogicSystem::LogicSystem() {
         response_json["email"] = request_json["email"];
         std::string json_string = response_json.toStyledString();
         beast::ostream(connection->_response.body()) << json_string;
+    });
+
+    RegisterPostHandler("/user_register", [](std::shared_ptr<HttpConnection> connection) {
+        auto body_str = boost::beast::buffers_to_string(connection->_request.body().data());
+        std::cout << "receive body is " << body_str << std::endl;
+        connection->_response.set(http::field::content_type, "application/json");
+
+        Json::Value root;
+        Json::Reader reader;
+        Json::Value src_root;
+        bool parse_success = reader.parse(body_str, src_root);
+        if (!parse_success) {
+            std::cout << "Failed to parse JSON data!" << std::endl;
+            root["error"] = ErrorCodes::Error_Json;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        const std::string user = src_root.get("user", "").asString();
+        const std::string email = src_root.get("email", "").asString();
+        const std::string passwd = src_root.get("passwd", "").asString();
+        const std::string confirm = src_root.get("confirm", "").asString();
+        const std::string varifycode = src_root.get("varifycode", "").asString();
+
+        if (user.empty() || email.empty() || passwd.empty() || confirm.empty() || varifycode.empty()) {
+            root["error"] = ErrorCodes::Error_Json;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        if (passwd != confirm) {
+            root["error"] = ErrorCodes::Error_Json;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        const std::string code_key = std::string("code_") + email;
+        std::string redis_code;
+        const bool got_code = RedisMgr::GetInstance()->Get(code_key, redis_code);
+        if (!got_code) {
+            std::cout << " get varify code expired" << std::endl;
+            root["error"] = ErrorCodes::VarifyExpired;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        if (redis_code != varifycode) {
+            std::cout << " varify code error" << std::endl;
+            root["error"] = ErrorCodes::VarifyCodeErr;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        if (RedisMgr::GetInstance()->ExistsKey(user)) {
+            std::cout << " user exist" << std::endl;
+            root["error"] = ErrorCodes::UserExist;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        if (!RedisMgr::GetInstance()->Set(user, email)) {
+            root["error"] = ErrorCodes::EmailServiceFailed;
+            beast::ostream(connection->_response.body()) << root.toStyledString();
+            return;
+        }
+
+        RedisMgr::GetInstance()->Del(code_key);
+
+        root["error"] = ErrorCodes::Success;
+        root["email"] = email;
+        root["user"] = user;
+        beast::ostream(connection->_response.body()) << root.toStyledString();
     });
 }
 

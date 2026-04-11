@@ -76,6 +76,38 @@ if(WIN32)
     )
 endif()
 
+# MinGW 动态链接时，运行时 DLL 需在 PATH 或与 exe 同目录，否则启动失败 0xC0000135 (STATUS_DLL_NOT_FOUND)
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    get_filename_component(_MINGW_RUNTIME_BIN "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    add_custom_command(
+        TARGET gate_server
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${_MINGW_RUNTIME_BIN}/libgcc_s_seh-1.dll"
+            $<TARGET_FILE_DIR:gate_server>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${_MINGW_RUNTIME_BIN}/libstdc++-6.dll"
+            $<TARGET_FILE_DIR:gate_server>
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${_MINGW_RUNTIME_BIN}/libwinpthread-1.dll"
+            $<TARGET_FILE_DIR:gate_server>
+        COMMENT "Copy MinGW runtime DLLs beside gate_server.exe"
+    )
+    if(NOT EXISTS "${_MINGW_RUNTIME_BIN}/libgcc_s_seh-1.dll")
+        message(WARNING "MinGW runtime DLLs not found under ${_MINGW_RUNTIME_BIN}; run may fail with 0xC0000135.")
+    endif()
+endif()
+
+if(EXISTS "${VCPKG_TRIPLET_DIR}/bin/libhiredis.dll")
+    add_custom_command(
+        TARGET gate_server
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${VCPKG_TRIPLET_DIR}/bin/libhiredis.dll"
+            $<TARGET_FILE_DIR:gate_server>
+        COMMENT "Copy libhiredis.dll beside gate_server.exe"
+    )
+endif()
 
 # 编译选项
 if(MSVC)

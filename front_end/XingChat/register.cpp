@@ -51,6 +51,35 @@ void Register::initHttpHandlers()
         showTip(tr("验证码已发送到邮箱，注意查收"), true);
         qDebug() << "email is " << email;
     });
+
+    _handlers.insert(ReqId::ID_REG_USER, [this](const QJsonObject &jsonObj) {
+        int error = jsonObj["error"].toInt();
+        if (error == ErrorCodes::SUCCESS) {
+            const QString email = jsonObj["email"].toString();
+            showTip(tr("用户注册成功"), true);
+            qDebug() << "register ok, email is" << email;
+            emit backToLogin();
+            close();
+            return;
+        }
+        if (error == ErrorCodes::ERR_VERIFY_EXPIRED) {
+            showTip(tr("验证码已过期或未发送"), false);
+            return;
+        }
+        if (error == ErrorCodes::ERR_VERIFY_CODE) {
+            showTip(tr("验证码错误"), false);
+            return;
+        }
+        if (error == ErrorCodes::ERR_USER_EXIST) {
+            showTip(tr("用户名已存在"), false);
+            return;
+        }
+        if (error == ErrorCodes::ERR_SERVER_JSON) {
+            showTip(tr("参数错误"), false);
+            return;
+        }
+        showTip(tr("注册失败"), false);
+    });
 }
 
 void Register::showTip(QString str, bool b_ok)
@@ -139,9 +168,14 @@ void Register::onRegisterClicked()
         return;
     }
 
-    QMessageBox::information(this, "注册成功", QString("用户名: %1\n邮箱: %2\n\n(注册成功，请添加实际注册逻辑)").arg(username, email));
-    emit backToLogin();
-    close();
+    QJsonObject json_obj;
+    json_obj["user"] = username;
+    json_obj["email"] = email;
+    json_obj["passwd"] = password;
+    json_obj["confirm"] = confirmPassword;
+    json_obj["varifycode"] = code;
+    const QString request_url = gate_url_prefix + "/user_register";
+    HttpMgr::GetInstance()->PostHttpReq(QUrl(request_url), json_obj, ReqId::ID_REG_USER, Modules::REGISTERMOD);
 }
 
 void Register::onCancelClicked()

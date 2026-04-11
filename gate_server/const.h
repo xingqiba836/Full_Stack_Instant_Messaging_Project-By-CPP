@@ -24,6 +24,9 @@ enum ErrorCodes {
     Success = 0,
     Error_Json = 1001,  // Json解析错误
     EmailServiceFailed = 1002,   // 邮件服务请求错误
+    VarifyExpired = 1003,       // 验证码过期或不存在
+    VarifyCodeErr = 1004,       // 验证码错误
+    UserExist = 1005,           // 用户已存在
 };
 
 #endif // CONST_H
